@@ -50,6 +50,7 @@ h1{{text-align:center;}}
 div.box{{font-style:italic}}
 a:link, a:hover, a:active, a:visited {{color:inherit;}}
 div.character-name{{font-weight:bold}}
+div.character-pic img{{height:100px;}}
 </style>
 </head>
 <body>
