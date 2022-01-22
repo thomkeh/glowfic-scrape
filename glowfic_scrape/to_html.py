@@ -8,7 +8,7 @@ from typing import Final
 
 import lxml.html
 
-from .common_types import Result, Url, HtmlCode
+from .common_types import Story, Url, HtmlCode, get_image_filename
 
 TEMPLATE: Final = HtmlCode(
     """
@@ -16,6 +16,7 @@ TEMPLATE: Final = HtmlCode(
   <div class="author-name">
     {author} ({posted})
   </div>
+  {picture}
   {character}
 </div>
 <div class="content">
@@ -63,6 +64,35 @@ div.character-name{{font-weight:bold}}
 PARAGRAPH_TWO_BRS: Final = re.compile(r"\s*((<br\s*/?>|\n)\s*){2,}", flags=re.I)
 
 
+def process(filename: str):
+    with open(filename, "r") as f:
+        thread: Story = json.load(f)
+    ofilename = re.sub(r"\W+", "_", thread["title"]) + ".html"
+    with open(ofilename, "w") as o:
+        o.write(
+            HEADER.format(
+                title=thread["title"],
+                authors=thread["authors"],
+                comments=thread["comments"],
+            )
+        )
+        for post in thread["posts"]:
+            o.write(
+                TEMPLATE.format(
+                    postid=post["id"],
+                    author=post["author"],
+                    # author_url=post["author_url"],
+                    picture=picture(post.get("icon_url")),
+                    character=character(post.get("character")),
+                    posted=format_time(post["posted"]),
+                    # permalink=post["permalink"],
+                    content=clean_html(to_paragraphs(post["content"])),
+                )
+            )
+        o.write("<hr>\n</body>\n</html>\n")
+    sys.stderr.write('wrote to "%s".\n' % ofilename)
+
+
 def to_paragraphs(src: HtmlCode) -> HtmlCode:
     return HtmlCode(
         src
@@ -81,46 +111,22 @@ def clean_html(src: HtmlCode) -> HtmlCode:
     )
 
 
-def character(char_name: str | None, char_url: Url | None) -> str:
-    if not char_name or not char_url:
+def character(char_name: str | None) -> str:
+    if char_name is None:
         return ""
     return f'<div class="character-name">{char_name}</div>\n'
+
+
+def picture(pic_url: Url | None) -> str:
+    if pic_url is None:
+        return ""
+    return f'<div class="character-pic"><img src="images/{get_image_filename(pic_url)}"></div>\n'
 
 
 def format_time(t: str) -> str:
     return datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
         "%Y-%m-%d %H:%M"
     )
-
-
-def process(filename: str):
-    with open(filename, "r") as f:
-        thread: Result = json.load(f)
-    ofilename = re.sub(r"\W+", "_", thread["title"]) + ".html"
-    with open(ofilename, "w") as o:
-        o.write(
-            HEADER.format(
-                title=thread.get("title"),
-                authors=thread.get("authors"),
-                comments=thread.get("comments"),
-            )
-        )
-        for post in thread["posts"]:
-            o.write(
-                TEMPLATE.format(
-                    postid=post["id"],
-                    author=post["author"],
-                    # author_url=post["author_url"],
-                    character=character(
-                        post.get("character"), post.get("character_url")
-                    ),
-                    posted=format_time(post["posted"]),
-                    # permalink=post["permalink"],
-                    content=clean_html(to_paragraphs(post["content"])),
-                )
-            )
-        o.write("<hr>\n</body>\n</html>\n")
-    sys.stderr.write('wrote to "%s".\n' % ofilename)
 
 
 if __name__ == "__main__":
