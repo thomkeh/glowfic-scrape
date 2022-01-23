@@ -4,11 +4,11 @@ import datetime
 import json
 import re
 import sys
-from typing import Final
+from typing import Final, Iterable
 
 import lxml.html
 
-from .common_types import Story, Url, HtmlCode, get_image_filename
+from .common_types import HtmlCode, Story, Url, get_image_filename
 
 TEMPLATE: Final = HtmlCode(
     """
@@ -103,13 +103,17 @@ def to_paragraphs(src: HtmlCode) -> HtmlCode:
 
 
 def clean_html(src: HtmlCode) -> HtmlCode:
+    post = lxml.html.fragment_fromstring(src, create_parent="post")
+    # relative links confuse `ebook-convert`; it thinks they are chapters
+    post.make_links_absolute("https://www.glowfic.com")
     return HtmlCode(
-        "".join(
-            lxml.html.tostring(e, encoding=str)
-            for e in lxml.html.fragments_fromstring(src)
-            if e.text or e.tail or len(e) > 0
-        )
+        html_to_string(e for e in post.iterchildren() if e.text or e.tail or len(e) > 0)
     )
+
+
+def html_to_string(elements: Iterable[lxml.html.HtmlElement]) -> str:
+    # this is apparently the way to do it...
+    return "".join(lxml.html.tostring(el, encoding=str) for el in elements)
 
 
 def character(char_name: str | None) -> str:
