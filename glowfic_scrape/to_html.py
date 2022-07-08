@@ -7,6 +7,7 @@ import sys
 from typing import Final, Iterable
 
 import lxml.html
+from smartypants import Attr, smartypants
 
 from .common_types import HtmlCode, Story, Url, get_image_filename
 
@@ -89,7 +90,7 @@ def process(filename: str):
                     character=character(post.get("character")),
                     posted=format_time(post["posted"]),
                     # permalink=post["permalink"],
-                    content=clean_html(to_paragraphs(post["content"])),
+                    content=clean_html(to_paragraphs(smartypants(post["content"], Attr.q))),
                 )
             )
         o.write("<hr>\n</body>\n</html>\n")
@@ -99,7 +100,7 @@ def process(filename: str):
 def to_paragraphs(src: HtmlCode) -> HtmlCode:
     return HtmlCode(
         src
-        if ("<p>" in src)
+        if ("<p>" in src or "<details>" in src)
         else PARAGRAPH_TWO_BRS.sub("</p><p>", "<p>" + src + "</p>")
     )
 

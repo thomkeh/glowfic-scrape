@@ -1,6 +1,6 @@
 # glowfic scraper
 
-Requires Python 3.10+ (with `lxml`) and `ebook-convert`.
+Requires Python 3.10+ (with `lxml` and `smartypants`) and `ebook-convert`.
 
 Example usage
 ```
