@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 from typing import Final
 from urllib.request import urlopen
+from urllib.error import URLError
 
 from .common_types import Story, Url, get_image_filename
 
@@ -33,8 +34,12 @@ def process(filepath: Path) -> None:
 def download_image(url: Url, dir: Path) -> None:
     filename = dir / get_image_filename(url)
     if not filename.exists():
+        try:
+            connection = urlopen(url, timeout=10)  # 10 second time out
+        except URLError as e:
+            raise RuntimeError(f"Can't open: '{url}' for '{filename}'.") from e
         with filename.open("wb") as f:
-            f.write(urlopen(url).read())
+            f.write(connection.read())
 
 
 if __name__ == "__main__":
