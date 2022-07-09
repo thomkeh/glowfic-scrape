@@ -52,7 +52,7 @@ div.box{{font-style:italic}}
 a:link, a:hover, a:active, a:visited {{color:inherit;}}
 div.character-name{{font-weight:bold}}
 div.character-pic img{{height:100px;max-width:400px;}}
-div.spoiler{{background:WhiteSmoke;margin:8px 0;}}
+div.spoiler{{border: 2px solid black;margin:4px 0;padding:4px;}}
 p.spoiler-summary{{font-weight:bold;margin-bottom:8px;text-align:center;}}
 </style>
 </head>
