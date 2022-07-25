@@ -14,9 +14,6 @@ from .common_types import HtmlCode, Story, Url, get_image_filename
 TEMPLATE: Final = HtmlCode(
     """
 <div id="{postid}" class="box">
-  <div class="author-name">
-    {author} ({posted})
-  </div>
   {picture}
   {character}
 </div>
@@ -48,10 +45,10 @@ pre{{overflow-x:auto;}}
 div p{{text-indent:2em;margin-top:0;margin-bottom:0}}
 div p:first-child{{text-indent:0;}}
 h1{{text-align:center;}}
-div.box{{font-style:italic}}
+div.box{{font-style:italic;margin-bottom:0.2em;}}
 a:link, a:hover, a:active, a:visited {{color:inherit;}}
-div.character-name{{font-weight:bold}}
-div.character-pic img{{height:100px;max-width:400px;}}
+span.character-name{{font-weight:bold;}}
+span.character-pic img{{width:100px;max-height:200px;margin-right:0.3em;}}
 div.spoiler{{border: 2px solid black;margin:4px 0;padding:4px;}}
 p.spoiler-summary{{font-weight:bold;margin-bottom:8px;text-align:center;}}
 </style>
@@ -84,11 +81,11 @@ def process(filename: str):
             o.write(
                 TEMPLATE.format(
                     postid=post["id"],
-                    author=post["author"],
+                    # author=post["author"],
                     # author_url=post["author_url"],
                     picture=picture(post.get("icon_url")),
-                    character=character(post.get("character")),
-                    posted=format_time(post["posted"]),
+                    character=character(post.get("character"), post["author"]),
+                    # posted=format_time(post["posted"]),
                     # permalink=post["permalink"],
                     content=clean_html(to_paragraphs(smartypants(post["content"], Attr.q | Attr.d))),
                 )
@@ -132,16 +129,16 @@ def html_to_string(elements: Iterable[lxml.html.HtmlElement]) -> str:
     return "".join(lxml.html.tostring(el, encoding=str) for el in elements)
 
 
-def character(char_name: str | None) -> str:
+def character(char_name: str | None, author: str) -> str:
     if char_name is None:
-        return ""
-    return f'<div class="character-name">{char_name}</div>\n'
+        return f'<span class="character-name">—</span> ({author})'
+    return f'<span class="character-name">{char_name}</span> ({author})\n'
 
 
 def picture(pic_url: Url | None) -> str:
     if pic_url is None:
         return ""
-    return f'<div class="character-pic"><img src="images/{get_image_filename(pic_url)}"></div>\n'
+    return f'<span class="character-pic"><img src="images/{get_image_filename(pic_url)}"></span>\n'
 
 
 def format_time(t: str) -> str:
