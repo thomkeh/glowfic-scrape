@@ -14,8 +14,7 @@ from .common_types import HtmlCode, Story, Url, get_image_filename
 TEMPLATE: Final = HtmlCode(
     """
 <div id="{postid}" class="box">
-  {picture}
-  {character}
+  {picture}{character}
 </div>
 <div class="content">
 {content}
@@ -47,8 +46,8 @@ div p:first-child{{text-indent:0;}}
 h1{{text-align:center;}}
 div.box{{font-style:italic;margin-bottom:0.2em;}}
 a:link, a:hover, a:active, a:visited {{color:inherit;}}
+span.character-pic img{{width:100px;max-height:200px;}}
 span.character-name{{font-weight:bold;}}
-span.character-pic img{{width:100px;max-height:200px;margin-right:0.3em;}}
 div.spoiler{{border: 2px solid black;margin:4px 0;padding:4px;}}
 p.spoiler-summary{{font-weight:bold;margin-bottom:8px;text-align:center;}}
 </style>
@@ -131,14 +130,15 @@ def html_to_string(elements: Iterable[lxml.html.HtmlElement]) -> str:
 
 def character(char_name: str | None, author: str) -> str:
     if char_name is None:
-        return f'<span class="character-name">—</span> ({author})'
-    return f'<span class="character-name">{char_name}</span> ({author})\n'
+        return f'<span class="character-name">—</span>&ensp;({author})'
+    return f'<span class="character-name">{char_name.strip()}</span>&ensp;({author})'
 
 
 def picture(pic_url: Url | None) -> str:
     if pic_url is None:
         return ""
-    return f'<span class="character-pic"><img src="images/{get_image_filename(pic_url)}"></span>\n'
+    img_path = get_image_filename(pic_url)
+    return f'<span class="character-pic"><img src="images/{img_path}"></span>&thinsp;&ensp;'
 
 
 def format_time(t: str) -> str:
